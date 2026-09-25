@@ -16,7 +16,7 @@ public class Categoria {
     private boolean activa;
 
     @Override
-    public String toString(){
+    public String toString() {
         return nombre;
     }
 }

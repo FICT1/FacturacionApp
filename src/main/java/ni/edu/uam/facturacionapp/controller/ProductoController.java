@@ -15,6 +15,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import ni.edu.uam.facturacionapp.dao.CategoriaDAO;
+import ni.edu.uam.facturacionapp.dao.ProductoDAO;
 import ni.edu.uam.facturacionapp.modelo.Categoria;
 import ni.edu.uam.facturacionapp.modelo.Producto;
 
@@ -39,18 +41,15 @@ public class ProductoController {
     @FXML private TableColumn<Producto, Integer> colExistencia;
     @FXML private TableColumn<Producto, Boolean> colActivo;
 
-    private final ObservableList<Producto> productos = FXCollections.observableArrayList();
+    private final CategoriaDAO categoriaDAO = new CategoriaDAO();
+    private final ProductoDAO productoDAO = new ProductoDAO();
     private String rutaImagen;
 
     @FXML
     private void initialize() {
-        cmbCategoria.setItems(FXCollections.observableArrayList(
-                new Categoria(1, "Alimentos", true),
-                new Categoria(2, "Bebidas", true),
-                new Categoria(3, "Limpieza", true)));
-
         configurarColumnas();
-        tblProductos.setItems(productos);
+        cargarCategorias();
+        cargarProductos();
         chkActivo.setSelected(true);
     }
 
@@ -61,6 +60,16 @@ public class ProductoController {
         colPrecio.setCellValueFactory(new PropertyValueFactory<>("precioVenta"));
         colExistencia.setCellValueFactory(new PropertyValueFactory<>("existencia"));
         colActivo.setCellValueFactory(new PropertyValueFactory<>("activo"));
+    }
+
+    private void cargarCategorias() {
+        ObservableList<Categoria> categorias = FXCollections.observableArrayList(categoriaDAO.listar());
+        cmbCategoria.setItems(categorias);
+    }
+
+    private void cargarProductos() {
+        ObservableList<Producto> productos = FXCollections.observableArrayList(productoDAO.listar());
+        tblProductos.setItems(productos);
     }
 
     @FXML
@@ -83,19 +92,35 @@ public class ProductoController {
             mensaje(Alert.AlertType.WARNING, "Complete los campos obligatorios.");
             return;
         }
+
         try {
             BigDecimal precio = new BigDecimal(txtPrecio.getText().trim());
             int existencia = Integer.parseInt(txtExistencia.getText().trim());
+
             if (precio.signum() <= 0 || existencia < 0) {
-                mensaje(Alert.AlertType.WARNING,
-                        "Precio mayor que cero y existencia no negativa.");
+                mensaje(Alert.AlertType.WARNING, "Precio mayor que cero y existencia no negativa.");
                 return;
             }
-            productos.add(new Producto(null, txtCodigo.getText().trim(),
-                    txtNombre.getText().trim(), cmbCategoria.getValue(), precio,
-                    existencia, rutaImagen, chkActivo.isSelected()));
-            mensaje(Alert.AlertType.INFORMATION, "Producto agregado correctamente.");
-            limpiar();
+
+            Producto nuevoProducto = new Producto(
+                    null,
+                    txtCodigo.getText().trim(),
+                    txtNombre.getText().trim(),
+                    cmbCategoria.getValue(),
+                    precio,
+                    existencia,
+                    rutaImagen,
+                    chkActivo.isSelected()
+            );
+
+            if (productoDAO.guardar(nuevoProducto)) {
+                mensaje(Alert.AlertType.INFORMATION, "Producto guardado correctamente en la base de datos.");
+                limpiar();
+                cargarProductos(); // Refresca la tabla directamente desde PostgreSQL
+            } else {
+                mensaje(Alert.AlertType.ERROR, "No se pudo guardar el producto en la base de datos.");
+            }
+
         } catch (NumberFormatException e) {
             mensaje(Alert.AlertType.ERROR, "Precio o existencia no válidos.");
         }
