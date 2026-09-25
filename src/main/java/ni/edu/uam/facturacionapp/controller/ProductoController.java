@@ -1,24 +1,16 @@
 package ni.edu.uam.facturacionapp.controller;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
+import ni.edu.uam.facturacionapp.dao.CategoriaDAO;
+import ni.edu.uam.facturacionapp.dao.ProductoDAO;
 import ni.edu.uam.facturacionapp.modelo.Categoria;
 import ni.edu.uam.facturacionapp.modelo.Producto;
 
-import java.io.File;
 import java.math.BigDecimal;
 
 public class ProductoController {
@@ -28,96 +20,94 @@ public class ProductoController {
     @FXML private ComboBox<Categoria> cmbCategoria;
     @FXML private TextField txtPrecio;
     @FXML private TextField txtExistencia;
+    @FXML private TextField txtRutaImagen;
     @FXML private CheckBox chkActivo;
-    @FXML private ImageView imgProducto;
-    @FXML private TableView<Producto> tblProductos;
 
+    @FXML private TableView<Producto> tblProductos;
+    @FXML private TableColumn<Producto, Integer> colId;
     @FXML private TableColumn<Producto, String> colCodigo;
     @FXML private TableColumn<Producto, String> colNombre;
-    @FXML private TableColumn<Producto, Categoria> colCategoria;
+    @FXML private TableColumn<Producto, String> colCategoria;
     @FXML private TableColumn<Producto, BigDecimal> colPrecio;
     @FXML private TableColumn<Producto, Integer> colExistencia;
     @FXML private TableColumn<Producto, Boolean> colActivo;
 
-    private final ObservableList<Producto> productos = FXCollections.observableArrayList();
-    private String rutaImagen;
+    private CategoriaDAO categoriaDAO = new CategoriaDAO();
+    private ProductoDAO productoDAO = new ProductoDAO();
 
     @FXML
-    private void initialize() {
-        cmbCategoria.setItems(FXCollections.observableArrayList(
-                new Categoria(1, "Alimentos", true),
-                new Categoria(2, "Bebidas", true),
-                new Categoria(3, "Limpieza", true)));
-
-        configurarColumnas();
-        tblProductos.setItems(productos);
-        chkActivo.setSelected(true);
+    public void initialize() {
+        configurarTabla();
+        cargarCategorias();
+        cargarProductos();
     }
 
-    private void configurarColumnas() {
+    private void configurarTabla() {
+        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colCodigo.setCellValueFactory(new PropertyValueFactory<>("codigo"));
         colNombre.setCellValueFactory(new PropertyValueFactory<>("nombre"));
-        colCategoria.setCellValueFactory(new PropertyValueFactory<>("categoria"));
+        colCategoria.setCellValueFactory(cell -> new SimpleStringProperty(
+                cell.getValue().getCategoria() != null ? cell.getValue().getCategoria().getNombre() : ""
+        ));
         colPrecio.setCellValueFactory(new PropertyValueFactory<>("precioVenta"));
         colExistencia.setCellValueFactory(new PropertyValueFactory<>("existencia"));
         colActivo.setCellValueFactory(new PropertyValueFactory<>("activo"));
     }
 
-    @FXML
-    private void seleccionarImagen() {
-        FileChooser chooser = new FileChooser();
-        chooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg"));
-        File archivo = chooser.showOpenDialog(txtCodigo.getScene().getWindow());
-        if (archivo != null) {
-            rutaImagen = archivo.toURI().toString();
-            imgProducto.setImage(new Image(rutaImagen));
-        }
+    private void cargarCategorias() {
+        ObservableList<Categoria> categorias = FXCollections.observableArrayList(categoriaDAO.listar());
+        cmbCategoria.setItems(categorias);
+    }
+
+    private void cargarProductos() {
+        ObservableList<Producto> productos = FXCollections.observableArrayList(productoDAO.listar());
+        tblProductos.setItems(productos);
     }
 
     @FXML
-    private void guardar() {
-        if (txtCodigo.getText().isBlank() || txtNombre.getText().isBlank()
-                || txtPrecio.getText().isBlank() || txtExistencia.getText().isBlank()
-                || cmbCategoria.getValue() == null) {
-            mensaje(Alert.AlertType.WARNING, "Complete los campos obligatorios.");
+    private void onGuardar() {
+        if (cmbCategoria.getValue() == null || txtCodigo.getText().trim().isEmpty() || txtNombre.getText().trim().isEmpty()) {
+            mostrarAlerta(Alert.AlertType.WARNING, "Validación", "Por favor llene los campos obligatorios y seleccione una categoría.");
             return;
         }
+
         try {
-            BigDecimal precio = new BigDecimal(txtPrecio.getText().trim());
-            int existencia = Integer.parseInt(txtExistencia.getText().trim());
-            if (precio.signum() <= 0 || existencia < 0) {
-                mensaje(Alert.AlertType.WARNING,
-                        "Precio mayor que cero y existencia no negativa.");
-                return;
+            Producto p = new Producto();
+            p.setCodigo(txtCodigo.getText().trim());
+            p.setNombre(txtNombre.getText().trim());
+            p.setCategoria(cmbCategoria.getValue());
+            p.setPrecioVenta(new BigDecimal(txtPrecio.getText().trim()));
+            p.setExistencia(Integer.parseInt(txtExistencia.getText().trim()));
+            p.setRutaImagen(txtRutaImagen.getText().trim());
+            p.setActivo(chkActivo.isSelected());
+
+            if (productoDAO.guardar(p)) {
+                mostrarAlerta(Alert.AlertType.INFORMATION, "Éxito", "Producto guardado correctamente en PostgreSQL.");
+                limpiarFormulario();
+                cargarProductos();
+            } else {
+                mostrarAlerta(Alert.AlertType.ERROR, "Error", "No se pudo registrar el producto.");
             }
-            productos.add(new Producto(null, txtCodigo.getText().trim(),
-                    txtNombre.getText().trim(), cmbCategoria.getValue(), precio,
-                    existencia, rutaImagen, chkActivo.isSelected()));
-            mensaje(Alert.AlertType.INFORMATION, "Producto agregado correctamente.");
-            limpiar();
         } catch (NumberFormatException e) {
-            mensaje(Alert.AlertType.ERROR, "Precio o existencia no válidos.");
+            mostrarAlerta(Alert.AlertType.ERROR, "Error de Entrada", "Asegúrese de ingresar un precio válido y una cantidad numéricas.");
         }
     }
 
-    @FXML
-    private void cerrar() {
-        ((Stage) txtCodigo.getScene().getWindow()).close();
-    }
-
-    private void limpiar() {
+    private void limpiarFormulario() {
         txtCodigo.clear();
         txtNombre.clear();
         txtPrecio.clear();
         txtExistencia.clear();
+        txtRutaImagen.clear();
         cmbCategoria.getSelectionModel().clearSelection();
         chkActivo.setSelected(true);
-        imgProducto.setImage(null);
-        rutaImagen = null;
     }
 
-    private void mensaje(Alert.AlertType tipo, String texto) {
-        new Alert(tipo, texto, ButtonType.OK).showAndWait();
+    private void mostrarAlerta(Alert.AlertType tipo, String titulo, String mensaje) {
+        Alert alert = new Alert(tipo);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensaje);
+        alert.showAndWait();
     }
 }
