@@ -24,6 +24,7 @@
                     <menus>
                         <Menu mnemonicParsing="false" text="Archivo">
                             <items>
+                                <MenuItem fx:id="mnuCategorias" mnemonicParsing="false" onAction="#abrirCategorias" text="Categorías" />
                                 <MenuItem fx:id="mnuProductos" mnemonicParsing="false" onAction="#abrirProductos" text="Productos" />
                                 <SeparatorMenuItem mnemonicParsing="false" />
                                 <MenuItem fx:id="mnuSalir" mnemonicParsing="false" onAction="#salir" text="Salir" />
@@ -33,6 +34,8 @@
                 </MenuBar>
                 <ToolBar prefHeight="45.0" style="-fx-background-color: #ffffff; -fx-border-color: #e0e0e0; -fx-border-width: 0 0 1 0; -fx-padding: 5 15 5 15;">
                     <items>
+                        <Button fx:id="btnCategorias" mnemonicParsing="false" onAction="#abrirCategorias" style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 6 14 6 14;" text="📁  Categorías" />
+                        <Separator orientation="VERTICAL" />
                         <Button fx:id="btnProductos" mnemonicParsing="false" onAction="#abrirProductos" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 6 14 6 14;" text="📦  Productos" />
                         <Separator orientation="VERTICAL" />
                         <Button fx:id="btnSalir" mnemonicParsing="false" onAction="#salir" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5; -fx-padding: 6 14 6 14;" text="🚪  Salir" />
@@ -62,13 +65,18 @@
                             </font>
                         </Label>
                         <Separator prefWidth="200.0" />
-                        <Label text="Bienvenido al sistema. Seleccione una opción del menú superior o acceda directamente a la gestión de productos." textAlignment="CENTER" textFill="#555555" wrapText="true">
+                        <Label text="Bienvenido al sistema. Seleccione una opción del menú superior o acceda a la gestión de datos." textAlignment="CENTER" textFill="#555555" wrapText="true">
                             <font>
                                 <Font size="13.0" />
                             </font>
                         </Label>
                         <HBox alignment="CENTER" spacing="15.0">
                             <children>
+                                <Button mnemonicParsing="false" onAction="#abrirCategorias" style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 6; -fx-padding: 10 20 10 20;" text="Gestionar Categorías">
+                                    <font>
+                                        <Font size="13.0" />
+                                    </font>
+                                </Button>
                                 <Button mnemonicParsing="false" onAction="#abrirProductos" style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 6; -fx-padding: 10 20 10 20;" text="Gestionar Productos">
                                     <font>
                                         <Font size="13.0" />

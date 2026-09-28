@@ -51,6 +51,8 @@ public class ProductoController {
         cargarCategorias();
         cargarProductos();
         chkActivo.setSelected(true);
+
+        cmbCategoria.setOnShowing(event -> cargarCategorias());
     }
 
     private void configurarColumnas() {
@@ -102,7 +104,7 @@ public class ProductoController {
                 return;
             }
 
-            Producto nuevoProducto = new Producto(
+            Producto producto = new Producto(
                     null,
                     txtCodigo.getText().trim(),
                     txtNombre.getText().trim(),
@@ -113,12 +115,12 @@ public class ProductoController {
                     chkActivo.isSelected()
             );
 
-            if (productoDAO.guardar(nuevoProducto)) {
+            if (productoDAO.guardar(producto)) {
                 mensaje(Alert.AlertType.INFORMATION, "Producto guardado correctamente en la base de datos.");
                 limpiar();
-                cargarProductos(); // Refresca la tabla directamente desde PostgreSQL
+                cargarProductos();
             } else {
-                mensaje(Alert.AlertType.ERROR, "No se pudo guardar el producto en la base de datos.");
+                mensaje(Alert.AlertType.ERROR, "No se pudo guardar el producto.");
             }
 
         } catch (NumberFormatException e) {
