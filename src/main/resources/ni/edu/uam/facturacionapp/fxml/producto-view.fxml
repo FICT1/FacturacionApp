@@ -16,13 +16,26 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="600.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ni.edu.uam.facturacionapp.controller.ProductoController">
+<BorderPane prefHeight="650.0" prefWidth="820.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ni.edu.uam.facturacionapp.controller.ProductoController">
     <top>
-        <Label text="Gestión de productos" BorderPane.alignment="CENTER_LEFT">
-            <BorderPane.margin>
-                <Insets bottom="10.0" left="10.0" top="10.0" />
-            </BorderPane.margin>
-        </Label>
+        <VBox spacing="10.0" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="5.0" left="10.0" right="10.0" top="10.0" />
+            </padding>
+            <children>
+                <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Gestión de productos" />
+                <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: #f4f4f4; -fx-padding: 8; -fx-background-radius: 5;">
+                    <children>
+                        <Label text="Buscar:" />
+                        <TextField fx:id="txtBuscar" prefWidth="180.0" promptText="Código, nombre o categoría..." />
+                        <Label text="Estado:" />
+                        <ComboBox fx:id="cmbFiltroEstado" prefWidth="110.0" />
+                        <Label text="Categoría:" />
+                        <ComboBox fx:id="cmbFiltroCategoria" prefWidth="140.0" />
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
     </top>
     <center>
         <VBox spacing="10.0" BorderPane.alignment="CENTER">
@@ -91,6 +104,9 @@
             </padding>
             <children>
                 <Button fx:id="btnGuardar" mnemonicParsing="false" onAction="#guardar" text="Guardar" />
+                <Button fx:id="btnActualizar" mnemonicParsing="false" onAction="#actualizar" text="Actualizar" />
+                <Button fx:id="btnEliminar" mnemonicParsing="false" onAction="#eliminar" text="Eliminar" />
+                <Button fx:id="btnLimpiar" mnemonicParsing="false" onAction="#limpiar" text="Limpiar" />
                 <Button fx:id="btnCerrar" mnemonicParsing="false" onAction="#cerrar" text="Cerrar" />
             </children>
         </HBox>
