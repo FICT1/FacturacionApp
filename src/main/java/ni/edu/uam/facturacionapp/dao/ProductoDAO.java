@@ -10,7 +10,7 @@ import java.util.List;
 
 public class ProductoDAO {
 
-    public boolean guardar(Producto producto) {
+    public boolean guardar(Producto producto) throws SQLException {
         String sql = """
             INSERT INTO producto (codigo, nombre, categoria_id, precio_venta, existencia, ruta_imagen, activo)
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -28,13 +28,10 @@ public class ProductoDAO {
             ps.setBoolean(7, producto.isActivo());
 
             return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
         }
     }
 
-    public List<Producto> listar() {
+    public List<Producto> listar() throws SQLException {
         List<Producto> lista = new ArrayList<>();
         String sql = """
             SELECT p.id, p.codigo, p.nombre, p.precio_venta, p.existencia, p.ruta_imagen, p.activo,
@@ -67,13 +64,11 @@ public class ProductoDAO {
                 );
                 lista.add(p);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         return lista;
     }
 
-    public boolean actualizar(Producto producto) {
+    public boolean actualizar(Producto producto) throws SQLException {
         String sql = """
             UPDATE producto
             SET codigo = ?, nombre = ?, categoria_id = ?, precio_venta = ?, existencia = ?, ruta_imagen = ?, activo = ?
@@ -93,13 +88,10 @@ public class ProductoDAO {
             ps.setInt(8, producto.getId());
 
             return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
         }
     }
 
-    public boolean eliminar(int id) {
+    public boolean eliminar(int id) throws SQLException {
         String sql = "DELETE FROM producto WHERE id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -107,9 +99,28 @@ public class ProductoDAO {
 
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
         }
+    }
+
+    public boolean existeCodigo(String codigo, Integer idExcluir) throws SQLException {
+        String sql = idExcluir == null
+                ? "SELECT COUNT(*) FROM producto WHERE LOWER(codigo) = LOWER(?)"
+                : "SELECT COUNT(*) FROM producto WHERE LOWER(codigo) = LOWER(?) AND id <> ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, codigo);
+            if (idExcluir != null) {
+                ps.setInt(2, idExcluir);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
     }
 }
